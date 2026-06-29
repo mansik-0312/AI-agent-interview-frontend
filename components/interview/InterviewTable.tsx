@@ -46,10 +46,7 @@ export default function InterviewTable() {
       setError(null);
 
       const token = getToken();
-
-      if (!token) {
-        throw new Error("Not authenticated. Please log in.");
-      }
+      if (!token) throw new Error("Not authenticated. Please log in.");
 
       const response = await fetch(
         `http://127.0.0.1:8000/api/interviews?page=${pageNumber}&limit=${LIMIT}`,
@@ -60,9 +57,7 @@ export default function InterviewTable() {
         }
       );
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch interviews");
-      }
+      if (!response.ok) throw new Error("Failed to fetch interviews");
 
       const result = await response.json();
       const data: InterviewsResponse = result.data;
@@ -72,9 +67,7 @@ export default function InterviewTable() {
       setTotal(data.total || 0);
     } catch (err) {
       console.error(err);
-      setError(
-        err instanceof Error ? err.message : "Failed to load interviews."
-      );
+      setError(err instanceof Error ? err.message : "Failed to load interviews.");
     } finally {
       setLoading(false);
     }
@@ -82,7 +75,7 @@ export default function InterviewTable() {
 
   if (loading) {
     return (
-      <div className="flex h-96 items-center justify-center text-slate-500">
+      <div className="flex h-96 items-center justify-center text-slate-500 bg-white rounded-3xl">
         Loading interviews...
       </div>
     );
@@ -90,11 +83,11 @@ export default function InterviewTable() {
 
   if (error) {
     return (
-      <div className="flex h-96 flex-col items-center justify-center gap-4 text-slate-500">
+      <div className="flex h-96 flex-col items-center justify-center gap-4 bg-white rounded-3xl text-slate-500">
         <p>{error}</p>
         <button
           onClick={() => fetchInterviews(page)}
-          className="rounded-xl bg-[#0B1020] px-5 py-3 text-white"
+          className="rounded-xl bg-violet-600 hover:bg-violet-700 px-6 py-3 text-white transition"
         >
           Retry
         </button>
@@ -107,7 +100,7 @@ export default function InterviewTable() {
       {/* TABLE */}
       <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
         <table className="w-full">
-          <thead className="bg-slate-50">
+          <thead className="bg-slate-50 border-b border-slate-200">
             <tr className="text-left text-sm font-semibold text-slate-600">
               <th className="px-6 py-5">Candidate</th>
               <th className="px-6 py-5">Technical Score</th>
@@ -118,7 +111,7 @@ export default function InterviewTable() {
             </tr>
           </thead>
 
-          <tbody>
+          <tbody className="divide-y divide-slate-100">
             {interviews.length === 0 ? (
               <tr>
                 <td colSpan={6} className="py-16 text-center text-slate-500">
@@ -129,7 +122,7 @@ export default function InterviewTable() {
               interviews.map((item) => (
                 <tr
                   key={item.interviewId}
-                  className="border-t border-slate-100 hover:bg-cyan-50 transition"
+                  className="hover:bg-slate-50 transition-colors"
                 >
                   <td className="px-6 py-5">
                     <div className="flex items-center gap-4">
@@ -146,33 +139,33 @@ export default function InterviewTable() {
                         <h3 className="font-semibold text-slate-900">
                           {item.candidateName}
                         </h3>
-
-                        <p className="text-sm text-slate-500">
-                          {item.interviewId}
-                        </p>
                       </div>
                     </div>
                   </td>
 
-                  <td className="px-6 py-5">
-                    {item.technicalScore === null ? (
-                      <span className="text-slate-400">--</span>
-                    ) : (
-                      <span className="font-semibold text-slate-900">
-                        ⭐ {item.technicalScore}
-                      </span>
-                    )}
-                  </td>
+                    <td className="px-6 py-5">
+                      {!item.technicalScore ? (
+                        <span className="text-slate-400">--</span>
+                      ) : (
+                        <div>
+                          <div className="font-semibold text-slate-900">
+                            {item.technicalScore.score}/{item.technicalScore.outOf}
+                          </div>
+                        </div>
+                      )}
+                    </td>
 
-                  <td className="px-6 py-5">
-                    {item.analysis?.integrityScore === undefined ? (
-                      <span className="text-slate-400">--</span>
-                    ) : (
-                      <span className="font-semibold text-emerald-600">
-                        {item.analysis.integrityScore}%
-                      </span>
-                    )}
-                  </td>
+                    <td className="px-6 py-5">
+                      {!item.integrityScore ? (
+                        <span className="text-slate-400">--</span>
+                      ) : (
+                        <div>
+                          <div className="font-semibold text-emerald-600">
+                            {item.integrityScore.score}%
+                          </div>
+                        </div>
+                      )}
+                    </td>
 
                   <td className="px-6 py-5">
                     <span
@@ -197,7 +190,7 @@ export default function InterviewTable() {
                   <td className="px-6 py-5 text-right">
                     <Link
                       href={`/interviews/${item.interviewId}`}
-                      className="inline-flex items-center gap-2 rounded-xl bg-[#0B1020] px-4 py-2 text-white hover:shadow-lg transition"
+                      className="inline-flex items-center gap-2 rounded-xl bg-violet-600 hover:bg-violet-700 px-5 py-2.5 text-white transition shadow-sm"
                     >
                       <Eye size={16} />
                       View Details
@@ -211,8 +204,8 @@ export default function InterviewTable() {
       </div>
 
       {/* PAGINATION */}
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-slate-500">
+      <div className="flex items-center justify-between text-sm text-slate-500">
+        <p>
           Showing page {page} of {totalPages} ({total} total)
         </p>
 
@@ -220,20 +213,20 @@ export default function InterviewTable() {
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1}
-            className="flex items-center gap-1 rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 disabled:opacity-40 hover:bg-slate-50 transition"
+            className="flex items-center gap-1 rounded-xl border border-slate-200 px-4 py-2 text-slate-700 disabled:opacity-40 hover:bg-slate-50 transition"
           >
             <ChevronLeft size={16} />
             Previous
           </button>
 
-          <span className="px-3 text-sm font-semibold text-slate-700">
+          <span className="px-3 py-2 font-semibold text-slate-700">
             {page} / {totalPages}
           </span>
 
           <button
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page === totalPages}
-            className="flex items-center gap-1 rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 disabled:opacity-40 hover:bg-slate-50 transition"
+            className="flex items-center gap-1 rounded-xl border border-slate-200 px-4 py-2 text-slate-700 disabled:opacity-40 hover:bg-slate-50 transition"
           >
             Next
             <ChevronRight size={16} />
