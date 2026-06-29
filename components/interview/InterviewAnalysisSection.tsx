@@ -9,20 +9,29 @@ interface QuestionResult {
   feedback: string;
 }
 
-interface InterviewAnalysisSectionProps {
+interface Analysis {
+  transcript?: string | null;
+  technicalScore?: number;
+  integrityScore?: number;
   recruiterSummary?: string;
   questionWiseResult?: QuestionResult[];
+  emotionMetrics?: Record<string, unknown>;
+  suspicionMetrics?: Record<string, unknown>;
+  readingRisk?: string;
   recordingUrl?: string;
+  createdAt?: string;
+}
+
+interface Props {
+  analysis: Analysis | null;
 }
 
 export default function InterviewAnalysisSection({
-  recruiterSummary,
-  questionWiseResult,
-  recordingUrl,
-}: InterviewAnalysisSectionProps) {
-  if (!recruiterSummary && !questionWiseResult?.length && !recordingUrl) {
+  analysis,
+}: Props) {
+  if (!analysis) {
     return (
-      <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm text-gray-500">
+      <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm text-gray-500">
         No analysis available for this interview yet.
       </div>
     );
@@ -30,74 +39,148 @@ export default function InterviewAnalysisSection({
 
   return (
     <div className="space-y-6">
-      {recruiterSummary && (
-        <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
-          <h2 className="font-bold text-lg text-gray-900 mb-3">
-            Recruiter Summary
-          </h2>
-          <p className="text-gray-600 leading-relaxed">{recruiterSummary}</p>
-        </div>
-      )}
 
-      {recordingUrl && (
-        <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
-          <h2 className="font-bold text-lg text-gray-900 mb-3">
+      {/* Recruiter Summary */}
+      <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+        <h2 className="mb-3 text-lg font-bold text-gray-900">
+          Recruiter Summary
+        </h2>
+
+        <p className="leading-7 text-gray-600">
+          {analysis.recruiterSummary || "No summary available."}
+        </p>
+      </div>
+
+      {/* AI Metrics */}
+      <div className="grid gap-5 md:grid-cols-3">
+
+        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <p className="text-sm text-gray-500">
+            AI Technical Score
+          </p>
+
+          <h3 className="mt-2 text-3xl font-bold text-gray-900">
+            {analysis.technicalScore ?? 0}/5
+          </h3>
+        </div>
+
+        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <p className="text-sm text-gray-500">
+            AI Integrity Score
+          </p>
+
+          <h3 className="mt-2 text-3xl font-bold text-gray-900">
+            {analysis.integrityScore ?? 0}/10
+          </h3>
+        </div>
+
+        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <p className="text-sm text-gray-500">
+            Reading Risk
+          </p>
+
+          <h3 className="mt-2 text-3xl font-bold text-gray-900">
+            {analysis.readingRisk ?? "--"}
+          </h3>
+        </div>
+
+      </div>
+
+      {/* Recording */}
+      {analysis.recordingUrl && (
+        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="mb-4 text-lg font-bold text-gray-900">
             Interview Recording
           </h2>
+
           <video
-            src={`http://127.0.0.1:8000${recordingUrl}`}
             controls
             className="w-full rounded-xl border border-gray-200"
+            src={`http://127.0.0.1:8000${analysis.recordingUrl}`}
           />
         </div>
       )}
 
-      {questionWiseResult && questionWiseResult.length > 0 && (
-        <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
-          <h2 className="font-bold text-lg text-gray-900 mb-5">
-            Question-wise Results
+      {/* Transcript */}
+      {analysis.transcript && (
+        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="mb-3 text-lg font-bold text-gray-900">
+            Transcript
           </h2>
 
-          <div className="space-y-5">
-            {questionWiseResult.map((q, idx) => (
-              <div
-                key={`${q.questionId}-${idx}`}
-                className="border border-gray-200 rounded-xl p-4"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <h3 className="font-semibold text-gray-900">
-                    {q.question}
-                  </h3>
+          <p className="whitespace-pre-wrap leading-7 text-gray-600">
+            {analysis.transcript}
+          </p>
+        </div>
+      )}
 
-                  <span className="shrink-0 rounded-lg bg-violet-100 text-violet-700 px-3 py-1 text-sm font-medium">
-                    Score: {q.score}
-                  </span>
-                </div>
+      {/* Question-wise Analysis */}
+      {analysis.questionWiseResult &&
+        analysis.questionWiseResult.length > 0 && (
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <h2 className="mb-5 text-lg font-bold text-gray-900">
+              Question-wise Analysis
+            </h2>
 
-                <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                  <div>
-                    <p className="text-gray-500 mb-1">Candidate Answer</p>
-                    <p className="text-gray-800">
-                      {q.candidateAnswer || (
-                        <span className="text-gray-400">No answer</span>
-                      )}
+            <div className="space-y-5">
+              {analysis.questionWiseResult.map((question, index) => (
+                <div
+                  key={index}
+                  className="rounded-xl border border-gray-200 p-5"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      {question.question}
+                    </h3>
+
+                    <span className="rounded-lg bg-violet-100 px-3 py-1 text-sm font-semibold text-violet-700">
+                      {question.score}/5
+                    </span>
+                  </div>
+
+                  <div className="mt-5 grid gap-5 md:grid-cols-2">
+
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">
+                        Candidate Answer
+                      </p>
+
+                      <div className="mt-2 rounded-lg border border-gray-100 bg-gray-50 p-4">
+                        <p className="text-gray-700">
+                          {question.candidateAnswer || "No answer provided."}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">
+                        Expected Answer
+                      </p>
+
+                      <div className="mt-2 rounded-lg border border-gray-100 bg-gray-50 p-4">
+                        <p className="text-gray-700">
+                          {question.expectedAnswer}
+                        </p>
+                      </div>
+                    </div>
+
+                  </div>
+
+                  <div className="mt-5 rounded-lg border border-blue-100 bg-blue-50 p-4">
+                    <p className="font-medium text-blue-700">
+                      Feedback
+                    </p>
+
+                    <p className="mt-2 text-gray-700">
+                      {question.feedback}
                     </p>
                   </div>
 
-                  <div>
-                    <p className="text-gray-500 mb-1">Expected Answer</p>
-                    <p className="text-gray-800">{q.expectedAnswer}</p>
-                  </div>
                 </div>
-
-                <p className="mt-3 text-sm text-gray-500">
-                  Feedback: {q.feedback}
-                </p>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
     </div>
   );
 }

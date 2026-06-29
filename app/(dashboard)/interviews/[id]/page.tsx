@@ -6,7 +6,6 @@ import { getToken } from "@/lib/auth";
 
 import InterviewHeader from "@/components/interview/InterviewHeader";
 import InterviewStats from "@/components/interview/InterviewStats";
-// import InterviewAnalysisSection from "@/components/interview/InterviewAnalysisSection";
 import InterviewAnalysisSection from "@/components/interview/InterviewAnalysisSection";
 
 interface QuestionResult {
@@ -19,19 +18,56 @@ interface QuestionResult {
 }
 
 interface Analysis {
-  technicalScore?: number;
-  integrityScore?: number;
   recruiterSummary?: string;
-  questionWiseResult?: QuestionResult[];
   recordingUrl?: string;
-  createdAt?: string;
+  questionWiseResult?: QuestionResult[];
+  emotionMetrics?: Record<string, unknown>;
+  suspicionMetrics?: Record<string, unknown>;
+  transcript?: string;
 }
+
+interface Duration {
+  time: string;
+  startTime: string;
+  endTime: string;
+}
+
+interface Questions {
+  total: number;
+  answered: number;
+  completionPercentage: number;
+}
+
+interface TechnicalScore {
+  score: number;
+  outOf: number;
+  status: string;
+}
+
+interface IntegrityScore {
+  score: number;
+  status: string;
+}
+
+interface InterviewTemplate {
+  id: string;
+  name: string;
+  description: string;
+  totalQuestions: number;
+} 
 
 interface InterviewDetails {
   interviewId: string;
   candidateName: string;
   status: string;
-  technicalScore: number | null;
+  date: string;
+
+  duration: Duration;
+  questions: Questions;
+  technicalScore: TechnicalScore;
+  integrityScore: IntegrityScore;
+  interviewTemplate: InterviewTemplate;
+
   analysis: Analysis | null;
 }
 
@@ -39,7 +75,9 @@ export default function InterviewDetailsPage() {
   const params = useParams();
   const id = params?.id as string;
 
-  const [interview, setInterview] = useState<InterviewDetails | null>(null);
+  const [interview, setInterview] =
+    useState<InterviewDetails | null>(null);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -52,13 +90,8 @@ export default function InterviewDetailsPage() {
   const fetchInterview = async (interviewId: string) => {
     try {
       setLoading(true);
-      setError(null);
 
       const token = getToken();
-
-      if (!token) {
-        throw new Error("Not authenticated. Please log in.");
-      }
 
       const response = await fetch(
         `http://127.0.0.1:8000/api/interviews/${interviewId}`,
@@ -70,7 +103,7 @@ export default function InterviewDetailsPage() {
       );
 
       if (!response.ok) {
-        throw new Error("Failed to fetch interview details");
+        throw new Error("Failed to fetch interview.");
       }
 
       const result = await response.json();
@@ -78,10 +111,11 @@ export default function InterviewDetailsPage() {
       setInterview(result.data);
     } catch (err) {
       console.error(err);
+
       setError(
         err instanceof Error
           ? err.message
-          : "Failed to load interview details."
+          : "Something went wrong."
       );
     } finally {
       setLoading(false);
@@ -90,46 +124,41 @@ export default function InterviewDetailsPage() {
 
   if (loading) {
     return (
-      <div className="flex h-96 items-center justify-center text-slate-500">
-        Loading interview details...
+      <div className="flex h-96 items-center justify-center">
+        Loading...
       </div>
     );
   }
 
-  if (error || !interview) {
+  if (!interview || error) {
     return (
-      <div className="flex h-96 flex-col items-center justify-center gap-4 text-slate-500">
-        <p>{error || "Interview not found."}</p>
-        <button
-          onClick={() => id && fetchInterview(id)}
-          className="rounded-xl bg-[#0B1020] px-5 py-3 text-white"
-        >
-          Retry
-        </button>
+      <div className="flex h-96 items-center justify-center">
+        {error}
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
+
       <InterviewHeader
         candidateName={interview.candidateName}
         status={interview.status}
         interviewId={interview.interviewId}
-        createdAt={interview.analysis?.createdAt}
       />
 
       <InterviewStats
+        duration={interview.duration}
+        questions={interview.questions}
         technicalScore={interview.technicalScore}
-        integrityScore={interview.analysis?.integrityScore}
-        questionCount={interview.analysis?.questionWiseResult?.length || 0}
+        integrityScore={interview.integrityScore}
+        interviewTemplate={interview.interviewTemplate}
       />
 
       <InterviewAnalysisSection
-        recruiterSummary={interview.analysis?.recruiterSummary}
-        questionWiseResult={interview.analysis?.questionWiseResult}
-        recordingUrl={interview.analysis?.recordingUrl}
+        analysis={interview.analysis}
       />
+
     </div>
   );
 }
