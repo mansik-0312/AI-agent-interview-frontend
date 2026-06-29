@@ -1,36 +1,186 @@
 "use client";
 
-import { useState } from "react";
-import { ArrowLeft, Search, Check, Calendar, Link as LinkIcon, User, Briefcase, MapPin, Clock, FileText } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ArrowLeft, Search, Check, Calendar, Link as LinkIcon } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 
-const templates = [
-  { id: 1, title: "Frontend Developer Interview", questions: 12, duration: "60 Min", icon: "💻" },
-  { id: 2, title: "Backend Developer Interview", questions: 14, duration: "75 Min", icon: "🗄️" },
-  { id: 3, title: "Full Stack Developer Interview", questions: 16, duration: "90 Min", icon: "🔄" },
-  { id: 4, title: "React Developer Interview", questions: 10, duration: "45 Min", icon: "⚛️" },
-];
+import { getToken } from "@/lib/auth";
+
+const API_BASE = "http://127.0.0.1:8000/api/interviews";
 
 export default function ScheduleInterview() {
   const [currentStep, setCurrentStep] = useState(1);
-  const [selectedTemplate, setSelectedTemplate] = useState(1);
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [templates, setTemplates] = useState([]);
+  const [candidates, setCandidates] = useState([]);
+  const [scheduledDate, setScheduledDate] = useState("");
+  const [scheduledTime, setScheduledTime] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [result, setResult] = useState(null);
 
   const [formData, setFormData] = useState({
-    candidateName: "Joey Tribbiani",
-    email: "joey.t@example.com",
-    phone: "+1 987 654 3210",
-    jobRole: "Frontend Developer",
-    department: "Engineering",
-    experience: "Mid Level (2-5 yrs)",
-    location: "Remote",
-    application: "APP-2024-1287",
-    resume: "Joey_Resume.pdf",
+    candidateApplicationId: "",
+    candidateName: "",
+    email: "",
+    phone: "",
+    jobRole: "",
+    department: "",
+    experience: "",
+    location: "",
+    application: "",
+    resume: "",
   });
+
+  // Fetch shortlisted candidates on mount
+  useEffect(() => {
+    const fetchCandidates = async () => {
+      try {
+        const token = getToken();
+
+        const res = await fetch(`${API_BASE}/candidates/shortlisted`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!res.ok) {
+          throw new Error("Failed to load shortlisted candidates.");
+        }
+
+        const data = await res.json();
+
+        setCandidates(data.data || []);
+
+        // Optional
+        // toast.success("Candidates loaded successfully");
+      } catch (err) {
+        console.error(err);
+
+        if (err instanceof TypeError) {
+          toast.error("Unable to connect to the server.");
+        } else {
+          toast.error(
+            err instanceof Error
+              ? err.message
+              : "Failed to load shortlisted candidates."
+          );
+        }
+      }
+    };
+
+    fetchCandidates();
+  }, []);
+
+  // Fetch interview templates on mount
+  useEffect(() => {
+    const fetchTemplates = async () => {
+      try {
+        const token = getToken();
+
+        const res = await fetch(`${API_BASE}/templates`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!res.ok) {
+          throw new Error("Failed to load interview templates.");
+        }
+
+        const data = await res.json();
+
+        const normalized = (data.data || []).map((t: any) => ({
+          id: t.templateId,
+          title: t.name,
+          description: t.description,
+          totalQuestions: t.totalQuestions,
+        }));
+
+        setTemplates(normalized);
+
+        // Optional success toast
+        // toast.success("Interview templates loaded successfully");
+      } catch (err) {
+        console.error(err);
+
+        if (err instanceof TypeError) {
+          toast.error("Unable to connect to the server.");
+        } else {
+          toast.error(
+            err instanceof Error
+              ? err.message
+              : "Failed to load interview templates."
+          );
+        }
+      }
+    };
+
+    fetchTemplates();
+  }, []);
 
   const nextStep = () => setCurrentStep((prev) => Math.min(3, prev + 1));
   const prevStep = () => setCurrentStep((prev) => Math.max(1, prev - 1));
 
-  const getSelectedTemplate = () => templates.find(t => t.id === selectedTemplate);
+  const getSelectedTemplate = () => templates.find((t) => t.id === selectedTemplate);
+
+  // When a candidate is picked from the search/dropdown, populate the form
+  const handleSelectCandidate = (candidate) => {
+    setFormData({
+      candidateApplicationId: candidate.applicationId,
+      candidateName: candidate.name,
+      email: candidate.email,
+      phone: candidate.mobile,
+      jobRole: candidate.role,
+      department: candidate.department || "",
+      experience: candidate.experience || "",
+      location: candidate.location || "",
+      application: candidate.applicationId,
+      resume: candidate.resumePath?.split("/").pop() || "",
+    });
+  };
+
+  const handleSchedule = async () => {
+    setError("");
+
+    if (!formData.candidateApplicationId || !selectedTemplate || !scheduledDate || !scheduledTime) {
+      toast.error("Please complete all required fields before scheduling.");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const token = getToken();
+
+      const res = await fetch(`${API_BASE}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          candidateApplicationId: formData.candidateApplicationId,
+          templateId: selectedTemplate,
+          scheduledDate,
+          scheduledTime,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.message || "Failed to schedule interview");
+      }
+
+      setResult(data.data);
+      nextStep();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <div className="p-6 bg-[#F8FAFC] min-h-screen">
@@ -47,6 +197,12 @@ export default function ScheduleInterview() {
           <h1 className="text-2xl font-semibold text-slate-900">Schedule New Interview</h1>
           <p className="text-slate-500 text-sm mt-0.5">Create and schedule an AI interview in a few simple steps.</p>
         </div>
+
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+            {error}
+          </div>
+        )}
 
         {/* Stepper */}
         <div className="flex items-center gap-0 mb-8">
@@ -92,18 +248,27 @@ export default function ScheduleInterview() {
               <>
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
                   <h2 className="text-base font-semibold text-slate-900 mb-5">Candidate Information</h2>
-                  
+
                   <div className="space-y-4">
                     <div>
                       <label className="text-xs font-medium text-slate-600 mb-1 block">Search Candidate *</label>
                       <div className="relative">
-                        <input
-                          type="text"
-                          value={formData.candidateName}
-                          onChange={(e) => setFormData({ ...formData, candidateName: e.target.value })}
-                          className="w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:border-violet-500 text-sm"
-                          placeholder="Search by name or email"
-                        />
+                        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                        <select
+                          value={formData.candidateApplicationId}
+                          onChange={(e) => {
+                            const candidate = candidates.find((c) => c.applicationId === e.target.value);
+                            if (candidate) handleSelectCandidate(candidate);
+                          }}
+                          className="w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:border-violet-500 text-sm appearance-none"
+                        >
+                          <option value="">Search by name or email</option>
+                          {candidates.map((c) => (
+                            <option key={c.applicationId} value={c.applicationId}>
+                              {c.name}
+                            </option>
+                          ))}
+                        </select>
                       </div>
                     </div>
 
@@ -196,7 +361,8 @@ export default function ScheduleInterview() {
                 <div className="flex justify-end">
                   <button
                     onClick={nextStep}
-                    className="px-6 py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-lg font-medium transition text-sm"
+                    disabled={!formData.candidateApplicationId}
+                    className="px-6 py-2.5 bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white rounded-lg font-medium transition text-sm"
                   >
                     Next Step →
                   </button>
@@ -209,47 +375,56 @@ export default function ScheduleInterview() {
               <>
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
                   <h2 className="text-base font-semibold text-slate-900 mb-5">Select Interview Template</h2>
-                  <div className="grid grid-cols-2 gap-3">
-                    {templates.map((t) => (
-                      <div
-                        key={t.id}
-                        onClick={() => setSelectedTemplate(t.id)}
-                        className={`p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                          selectedTemplate === t.id
-                            ? "border-violet-600 bg-violet-50/50"
-                            : "border-slate-200 hover:border-slate-300"
-                        }`}
-                      >
-                        <div className="text-2xl mb-2">{t.icon}</div>
-                        <h3 className="font-medium text-slate-900 text-sm">{t.title}</h3>
-                        <p className="text-xs text-slate-500 mt-0.5">
-                          {t.questions} Questions • {t.duration}
-                        </p>
-                        {selectedTemplate === t.id && (
-                          <div className="mt-2 flex items-center gap-1 text-violet-600 font-medium text-xs">
-                            <Check size={14} /> Selected
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      {templates.map((t) => (
+                        <div
+                          key={t.id}
+                          onClick={() => setSelectedTemplate(t.id)}
+                          className={`p-4 border-2 rounded-xl cursor-pointer transition-all ${
+                            selectedTemplate === t.id
+                              ? "border-violet-600 bg-violet-50/50"
+                              : "border-slate-200 hover:border-slate-300"
+                          }`}
+                        >
+                          <div className="text-2xl mb-2"></div>
+                          <h3 className="font-medium text-slate-900 text-sm">{t.title}</h3>
+                          <p className="text-xs text-slate-500 mt-0.5">{t.description}</p>
+                          <p className="text-xs text-slate-500 mt-0.5">{t.totalQuestions} Questions</p>
+                          {selectedTemplate === t.id && (
+                            <div className="mt-2 flex items-center gap-1 text-violet-600 font-medium text-xs">
+                              <Check size={14} /> Selected
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                      {templates.length === 0 && (
+                        <p className="text-sm text-slate-400 col-span-2">No templates available.</p>
+                      )}
+                    </div>
                 </div>
 
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
                   <div className="grid grid-cols-2 gap-6">
                     <div>
-                      <label className="text-xs font-medium text-slate-600 mb-1 block">Schedule</label>
-                      <div className="flex items-center gap-2 px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-400 text-sm">
-                        <Calendar size={16} />
-                        To be selected in Step 2
+                      <label className="text-xs font-medium text-slate-600 mb-1 block">Schedule Date *</label>
+                      <div className="flex items-center gap-2 px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg">
+                        <Calendar size={16} className="text-slate-400" />
+                        <input
+                          type="date"
+                          value={scheduledDate}
+                          onChange={(e) => setScheduledDate(e.target.value)}
+                          className="w-full bg-transparent text-sm text-slate-900 focus:outline-none"
+                        />
                       </div>
                     </div>
                     <div>
-                      <label className="text-xs font-medium text-slate-600 mb-1 block">Interview Link</label>
-                      <div className="flex items-center gap-2 px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-400 text-sm">
-                        <LinkIcon size={16} />
-                        Will be generated after scheduling
-                      </div>
+                      <label className="text-xs font-medium text-slate-600 mb-1 block">Schedule Time *</label>
+                      <input
+                        type="time"
+                        value={scheduledTime}
+                        onChange={(e) => setScheduledTime(e.target.value)}
+                        className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:border-violet-500 text-sm"
+                      />
                     </div>
                   </div>
                 </div>
@@ -263,7 +438,8 @@ export default function ScheduleInterview() {
                   </button>
                   <button
                     onClick={nextStep}
-                    className="px-6 py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-lg font-medium transition text-sm"
+                    disabled={!selectedTemplate || !scheduledDate || !scheduledTime}
+                    className="px-6 py-2.5 bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white rounded-lg font-medium transition text-sm"
                   >
                     Next Step →
                   </button>
@@ -281,7 +457,12 @@ export default function ScheduleInterview() {
                   <div className="space-y-3">
                     <div className="flex items-start gap-4 p-3 bg-slate-50 rounded-lg">
                       <div className="w-10 h-10 bg-violet-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">
-                        JT
+                        {formData.candidateName
+                          ?.split(" ")
+                          .map((n) => n[0])
+                          .join("")
+                          .slice(0, 2)
+                          .toUpperCase() || "—"}
                       </div>
                       <div>
                         <div className="font-medium text-slate-900 text-sm">{formData.candidateName}</div>
@@ -310,11 +491,15 @@ export default function ScheduleInterview() {
                       </div>
                       <div className="p-3 bg-slate-50 rounded-lg">
                         <div className="text-xs text-slate-500 mb-0.5">No. of Questions</div>
-                        <div className="font-medium text-slate-900 text-sm">{getSelectedTemplate()?.questions} Questions</div>
+                        <div className="font-medium text-slate-900 text-sm">
+                          {getSelectedTemplate()?.totalQuestions ?? getSelectedTemplate()?.questions} Questions
+                        </div>
                       </div>
                       <div className="p-3 bg-slate-50 rounded-lg">
-                        <div className="text-xs text-slate-500 mb-0.5">Estimated Duration</div>
-                        <div className="font-medium text-slate-900 text-sm">{getSelectedTemplate()?.duration}</div>
+                        <div className="text-xs text-slate-500 mb-0.5">Schedule</div>
+                        <div className="font-medium text-slate-900 text-sm">
+                          {scheduledDate} {scheduledTime}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -328,13 +513,27 @@ export default function ScheduleInterview() {
                     Back
                   </button>
                   <button
-                    onClick={nextStep}
-                    className="px-6 py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-lg font-medium transition text-sm"
+                    onClick={handleSchedule}
+                    disabled={submitting}
+                    className="px-6 py-2.5 bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white rounded-lg font-medium transition text-sm"
                   >
-                    Schedule Interview
+                    {submitting ? "Scheduling..." : "Schedule Interview"}
                   </button>
                 </div>
               </>
+            )}
+
+            {/* Step 4: Success */}
+            {currentStep === 4 && result && (
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100 text-center">
+                <h2 className="text-lg font-semibold text-slate-900 mb-2">Interview Scheduled!</h2>
+                <div className="flex items-center justify-center gap-2 text-violet-600 text-sm">
+                  <LinkIcon size={14} />
+                  <a href={result.interviewLink} target="_blank" rel="noreferrer">
+                    {result.interviewLink}
+                  </a>
+                </div>
+              </div>
             )}
           </div>
 
@@ -346,55 +545,71 @@ export default function ScheduleInterview() {
 
               <div className="flex items-center gap-3 mb-4 p-3 bg-slate-50 rounded-lg">
                 <div className="w-10 h-10 bg-violet-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">
-                  JT
+                  {formData.candidateName
+                    ?.split(" ")
+                    .map((n) => n[0])
+                    .join("")
+                    .slice(0, 2)
+                    .toUpperCase() || "—"}
                 </div>
                 <div>
-                  <div className="font-medium text-slate-900 text-sm">{formData.candidateName}</div>
+                  <div className="font-medium text-slate-900 text-sm">{formData.candidateName || "No candidate selected"}</div>
                   <div className="text-slate-500 text-xs">{formData.email}</div>
                   <div className="text-slate-500 text-xs">{formData.phone}</div>
-                  <div className="text-emerald-600 text-xs font-medium mt-0.5">Active</div>
+                  {formData.candidateName && (
+                    <div className="text-emerald-600 text-xs font-medium mt-0.5">Active</div>
+                  )}
                 </div>
               </div>
 
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between py-2 border-b border-slate-50">
                   <span className="text-slate-500 text-xs">Job Role</span>
-                  <span className="font-medium text-slate-900 text-xs">{formData.jobRole}</span>
+                  <span className="font-medium text-slate-900 text-xs">{formData.jobRole || "—"}</span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-slate-50">
                   <span className="text-slate-500 text-xs">Department</span>
-                  <span className="font-medium text-slate-900 text-xs">{formData.department}</span>
+                  <span className="font-medium text-slate-900 text-xs">{formData.department || "—"}</span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-slate-50">
                   <span className="text-slate-500 text-xs">Experience Level</span>
-                  <span className="font-medium text-slate-900 text-xs">{formData.experience}</span>
+                  <span className="font-medium text-slate-900 text-xs">{formData.experience || "—"}</span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-slate-50">
                   <span className="text-slate-500 text-xs">Interview Template</span>
                   <span className="font-medium text-slate-900 text-xs">
-                    {currentStep >= 2 ? getSelectedTemplate()?.title : "Frontend Developer Interview"}
+                    {getSelectedTemplate()?.title || "Not selected"}
                   </span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-slate-50">
                   <span className="text-slate-500 text-xs">No. of Questions</span>
                   <span className="font-medium text-slate-900 text-xs">
-                    {currentStep >= 2 ? `${getSelectedTemplate()?.questions} Questions` : "12 Questions"}
+                    {getSelectedTemplate()
+                      ? `${getSelectedTemplate()?.totalQuestions ?? getSelectedTemplate()?.questions} Questions`
+                      : "—"}
+                  </span>
+                </div>
+                <div className="flex justify-between py-2 border-b border-slate-50">
+                  <span className="text-slate-500 text-xs">Schedule</span>
+                  <span className="font-medium text-slate-900 text-xs">
+                    {scheduledDate && scheduledTime ? `${scheduledDate} ${scheduledTime}` : "To be selected in Step 2"}
                   </span>
                 </div>
                 <div className="flex justify-between py-2">
-                  <span className="text-slate-500 text-xs">Estimated Duration</span>
+                  <span className="text-slate-500 text-xs">Interview Link</span>
                   <span className="font-medium text-slate-900 text-xs">
-                    {currentStep >= 2 ? getSelectedTemplate()?.duration : "60 Minutes"}
+                    {result?.interviewLink ? "Generated" : "Will be generated after scheduling"}
                   </span>
                 </div>
               </div>
 
               <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col gap-2">
                 <button
-                  onClick={nextStep}
-                  className="w-full bg-violet-600 hover:bg-violet-700 text-white py-2.5 rounded-lg font-medium transition text-sm"
+                  onClick={currentStep === 3 ? handleSchedule : nextStep}
+                  disabled={submitting}
+                  className="w-full bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white py-2.5 rounded-lg font-medium transition text-sm"
                 >
-                  {currentStep === 3 ? "Schedule Interview" : "Next Step →"}
+                  {currentStep === 3 ? (submitting ? "Scheduling..." : "Schedule Interview") : "Next Step →"}
                 </button>
                 <button
                   onClick={prevStep}
