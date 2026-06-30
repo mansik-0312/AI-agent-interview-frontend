@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useQuestions } from "@/hooks/useQuestions";
 import QuestionHeader from "@/components/questions/question-header";
 import QuestionStats from "@/components/questions/question-stats";
@@ -8,6 +9,8 @@ import QuestionFilters from "@/components/questions/question-filters";
 import QuestionTable from "@/components/questions/question-table";
 import QuestionPagination from "@/components/questions/question-pagination";
 import { Question } from "@/types/question";
+import { useDeleteQuestion } from "@/hooks/useDeleteQuestion";
+import { useUpdateQuestion } from "@/hooks/useUpdateQuestion";
 
 // TODO: replace with real templates fetched from /templates for the filter dropdown
 const PLACEHOLDER_TEMPLATES = [
@@ -27,6 +30,8 @@ export default function QuestionsPage() {
   const [status, setStatus] = useState(""); // "" | "true" | "false"
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
+  const router = useRouter();
+
   const active = status === "" ? undefined : status === "true";
 
   const { data, loading, error, refetch } = useQuestions(
@@ -38,6 +43,10 @@ export default function QuestionsPage() {
     templateId
   );
 
+  const { removeQuestion } = useDeleteQuestion();
+
+  const { updateQuestion } = useUpdateQuestion();
+  
   const handleReset = () => {
     setSearch("");
     setDifficulty("");
@@ -61,9 +70,22 @@ export default function QuestionsPage() {
     setSelected(allSelected ? new Set() : new Set(data.records.map((r) => r.id)));
   };
 
-  const handleDelete = (q: Question) => {
-    // TODO: wire to deleteQuestion service + refetch
-    console.log("delete", q.id);
+  const handleDelete = async (q: Question) => {
+    const confirmed = window.confirm(
+      `Delete "${q.questionText}"?`
+    );
+
+    if (!confirmed) return;
+
+    const success = await removeQuestion(q.id);
+
+    if (success) {
+      refetch();
+    }
+  };
+
+  const handleEdit = (q: Question) => {
+    router.push(`/questions/create?id=${q.id}`);
   };
 
   const handleDuplicate = (q: Question) => {
@@ -118,6 +140,7 @@ export default function QuestionsPage() {
           selected={selected}
           onToggleSelect={toggleSelect}
           onToggleAll={toggleAll}
+          onEdit={handleEdit}
           onDelete={handleDelete}
           onDuplicate={handleDuplicate}
           bare

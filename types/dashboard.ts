@@ -10,7 +10,6 @@ export interface UpcomingInterview {
   candidateName: string;
   jobRole: string;
   scheduledAt: string;
-  interviewers: string[];
   type: string;
   status: string;
 }

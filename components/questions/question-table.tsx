@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Eye, Pencil, Copy, Trash2, Star } from "lucide-react";
+import { Pencil, Trash2, Star } from "lucide-react";
 import { Question } from "@/types/question";
 
 interface Props {
@@ -9,9 +9,7 @@ interface Props {
   selected: Set<string>;
   onToggleSelect: (id: string) => void;
   onToggleAll: () => void;
-  onView?: (q: Question) => void;
   onEdit?: (q: Question) => void;
-  onDuplicate?: (q: Question) => void;
   onDelete?: (q: Question) => void;
   /** When true, renders without its own border/rounded wrapper (for nesting inside a parent card). */
   bare?: boolean;
@@ -60,9 +58,7 @@ export default function QuestionTable({
   selected,
   onToggleSelect,
   onToggleAll,
-  onView,
   onEdit,
-  onDuplicate,
   onDelete,
   bare = false,
 }: Props) {
@@ -194,25 +190,11 @@ export default function QuestionTable({
                   <td className="px-4 py-4">
                     <div className="flex items-center gap-1">
                       <button
-                        title="View"
-                        onClick={() => onView?.(q)}
-                        className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </button>
-                      <button
                         title="Edit"
                         onClick={() => onEdit?.(q)}
                         className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
                       >
                         <Pencil className="h-4 w-4" />
-                      </button>
-                      <button
-                        title="Duplicate"
-                        onClick={() => onDuplicate?.(q)}
-                        className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
-                      >
-                        <Copy className="h-4 w-4" />
                       </button>
                       <button
                         title="Delete"
