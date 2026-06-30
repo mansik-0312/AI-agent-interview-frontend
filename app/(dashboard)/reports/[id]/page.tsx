@@ -807,7 +807,7 @@ import { getToken } from "@/lib/auth"; // Update the import path if needed
 
 // Base host for the backend API — used to resolve relative media paths
 // (e.g. recordingUrl: "/recordings/xyz.mp4") into playable absolute URLs.
-const API_BASE_URL = "http://127.0.0.1:8000";
+const API_BASE_URL = "${process.env.NEXT_PUBLIC_API_URL}";
 
 const resolveMediaUrl = (url?: string | null) => {
   if (!url) return null;
@@ -942,7 +942,7 @@ export default function ReportDetailPage() {
       const token = getToken();
 
       const response = await fetch(
-        `http://127.0.0.1:8000/api/reports/${interviewId}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/reports/${interviewId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
