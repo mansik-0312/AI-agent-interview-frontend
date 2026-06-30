@@ -126,7 +126,7 @@ export default function InterviewTable() {
                 >
                   <td className="px-6 py-5">
                     <div className="flex items-center gap-4">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-violet-600 text-white font-bold">
                         {item.candidateName
                           .split(" ")
                           .map((x) => x[0])
