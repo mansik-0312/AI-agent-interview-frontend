@@ -24,6 +24,7 @@ interface Analysis {
   emotionMetrics?: Record<string, unknown>;
   suspicionMetrics?: Record<string, unknown>;
   transcript?: string;
+  createdAt?: string;
 }
 
 interface Duration {
@@ -141,11 +142,12 @@ export default function InterviewDetailsPage() {
   return (
     <div className="space-y-6">
 
-      <InterviewHeader
-        candidateName={interview.candidateName}
-        status={interview.status}
-        interviewId={interview.interviewId}
-      />
+    <InterviewHeader
+      candidateName={interview.candidateName}
+      status={interview.status}
+      interviewId={interview.interviewId}
+      createdAt={interview.analysis?.createdAt}
+    />
 
       <InterviewStats
         duration={interview.duration}
