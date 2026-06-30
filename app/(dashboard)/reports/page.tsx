@@ -193,7 +193,7 @@ export default function ReportsListPage() {
         const token = getToken();
 
         const response = await fetch(
-        `http://127.0.0.1:8000/api/interviews?status=completed&page=${pageNumber}&limit=${LIMIT}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/interviews?status=completed&page=${pageNumber}&limit=${LIMIT}`,
         {
             headers: {
             Authorization: `Bearer ${token}`,

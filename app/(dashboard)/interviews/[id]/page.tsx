@@ -94,7 +94,7 @@ export default function InterviewDetailsPage() {
       const token = getToken();
 
       const response = await fetch(
-        `http://127.0.0.1:8000/api/interviews/${interviewId}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/interviews/${interviewId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

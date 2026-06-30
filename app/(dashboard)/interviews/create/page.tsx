@@ -7,7 +7,7 @@ import { toast } from "sonner";
 
 import { getToken } from "@/lib/auth";
 
-const API_BASE = "http://127.0.0.1:8000/api/interviews";
+const API_BASE = "${process.env.NEXT_PUBLIC_API_URL}/interviews";
 
 export default function ScheduleInterview() {
   const [currentStep, setCurrentStep] = useState(1);
