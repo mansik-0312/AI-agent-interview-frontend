@@ -2,6 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+
+import { useEffect, useState } from "react";
+import { getUser } from "@/lib/auth";
+
 import {
   Home,
   Video,
@@ -14,6 +18,14 @@ import {
   Bot,
   UserCircle2,
 } from "lucide-react";
+
+
+interface User {
+  fName: string;
+  lName: string;
+  designation: string;
+  profileImg: string;
+}
 
 const menu = [
   {
@@ -84,6 +96,14 @@ const menu = [
 export default function Sidebar() {
   const pathname = usePathname();
 
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const userData = getUser();
+    setUser(userData);
+  }, []);
+
+
   return (
     <aside className="w-[270px] h-screen sticky top-0 bg-[#0B1020] text-white flex flex-col">
       {/* Logo - Fixed */}
@@ -149,12 +169,26 @@ export default function Sidebar() {
       <div className="shrink-0 border-t border-white/10 p-4">
         <div className="rounded-xl border border-white/10 p-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <UserCircle2 size={42} />
+            {user?.profileImg ? (
+              <img
+                src={user.profileImg}
+                alt="Profile"
+                className="w-10 h-10 rounded-full object-cover"
+              />
+            ) : (
+              <UserCircle2 size={42} />
+            )}
 
             <div>
-              <h4 className="font-semibold">Mansi Kakade</h4>
+              <h4 className="font-semibold">
+                {user
+                  ? `${user.fName} ${user.lName}`
+                  : "Loading..."}
+              </h4>
 
-              <p className="text-xs text-gray-400">Recruiter</p>
+              <p className="text-xs text-gray-400">
+                {user?.designation || "User"}
+              </p>
             </div>
           </div>
         </div>
