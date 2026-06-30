@@ -26,12 +26,12 @@ import { getToken } from "@/lib/auth"; // Update the import path if needed
 
 // Base host for the backend API — used to resolve relative media paths
 // (e.g. recordingUrl: "/recordings/xyz.mp4") into playable absolute URLs.
-const API_BASE_URL = "${process.env.NEXT_PUBLIC_API_URL}";
-
+const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}`;
+const BASE_URI = process.env.NEXT_PUBLIC_BASE_URL;
 const resolveMediaUrl = (url?: string | null) => {
   if (!url) return null;
   if (/^https?:\/\//i.test(url)) return url; // already absolute
-  return `${API_BASE_URL}${url.startsWith("/") ? "" : "/"}${url}`;
+  return `${BASE_URI}${url.startsWith("/") ? "" : "/"}${url}`;
 };
 
 /* ----------------------------------------------------------------------
