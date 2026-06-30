@@ -49,7 +49,7 @@ export default function InterviewTable() {
       if (!token) throw new Error("Not authenticated. Please log in.");
 
       const response = await fetch(
-        `http://127.0.0.1:8000/api/interviews?page=${pageNumber}&limit=${LIMIT}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/interviews?page=${pageNumber}&limit=${LIMIT}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

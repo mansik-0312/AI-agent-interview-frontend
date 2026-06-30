@@ -30,7 +30,7 @@ interface User {
 const menu = [
   {
     title: "Dashboard",
-    href: "/",
+    href: "/dashboard",
     icon: Home,
   },
 
