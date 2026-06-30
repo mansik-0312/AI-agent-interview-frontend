@@ -9,6 +9,11 @@ import { getToken } from "@/lib/auth";
 
 const API_BASE = `${process.env.NEXT_PUBLIC_API_URL}/interviews`;
 
+interface Department {
+  id: string;
+  name: string;
+}
+
 export default function ScheduleInterview() {
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
@@ -19,6 +24,8 @@ export default function ScheduleInterview() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState(null);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [loadingDepartments, setLoadingDepartments] = useState(false);
 
   const [formData, setFormData] = useState({
     candidateApplicationId: "",
@@ -26,7 +33,7 @@ export default function ScheduleInterview() {
     email: "",
     phone: "",
     jobRole: "",
-    department: "",
+    departmentId: "",
     experience: "",
     location: "",
     application: "",
@@ -126,59 +133,128 @@ export default function ScheduleInterview() {
   const getSelectedTemplate = () => templates.find((t) => t.id === selectedTemplate);
 
   // When a candidate is picked from the search/dropdown, populate the form
-  const handleSelectCandidate = (candidate) => {
-    setFormData({
+  const handleSelectCandidate = (candidate: any) => {
+    setFormData((prev) => ({
+      ...prev,
+
       candidateApplicationId: candidate.applicationId,
       candidateName: candidate.name,
       email: candidate.email,
       phone: candidate.mobile,
       jobRole: candidate.role,
-      department: candidate.department || "",
-      experience: candidate.experience || "",
-      location: candidate.location || "",
+      departmentId: candidate.departmentId ?? "",
+      experience: candidate.experience ?? "",
+
+      location: candidate.location ?? "",
       application: candidate.applicationId,
-      resume: candidate.resumePath?.split("/").pop() || "",
-    });
+      resume: candidate.resumePath
+        ? candidate.resumePath.split("/").pop()
+        : "",
+    }));
   };
 
   const handleSchedule = async () => {
     setError("");
 
-    if (!formData.candidateApplicationId || !selectedTemplate || !scheduledDate || !scheduledTime) {
+    if (
+      !formData.candidateApplicationId ||
+      !selectedTemplate ||
+      !scheduledDate ||
+      !scheduledTime
+    ) {
       toast.error("Please complete all required fields before scheduling.");
       return;
     }
 
     setSubmitting(true);
+
     try {
       const token = getToken();
 
-      const res = await fetch(`${API_BASE}`, {
+      const payload = {
+        candidateApplicationId: formData.candidateApplicationId,
+        templateId: selectedTemplate,
+        scheduledDate,
+        scheduledTime,
+
+        candidateName: formData.candidateName,
+        departmentId: formData.departmentId,
+        jobRole: formData.jobRole,
+        experience: formData.experience,
+        email: formData.email,
+        phone: formData.phone,
+      };
+
+      const res = await fetch(API_BASE, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          candidateApplicationId: formData.candidateApplicationId,
-          templateId: selectedTemplate,
-          scheduledDate,
-          scheduledTime,
-        }),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        toast.error(data.message || "Failed to schedule interview");
+        toast.error(
+          typeof data?.message === "string"
+            ? data.message
+            : typeof data?.detail === "string"
+            ? data.detail
+            : "Failed to schedule interview"
+        );
+        return;
       }
+
+      toast.success("Interview scheduled successfully.");
 
       setResult(data.data);
       nextStep();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong.");
+      console.error(err);
+
+      setError(
+        err instanceof Error ? err.message : "Something went wrong."
+      );
+
+      toast.error("Failed to schedule interview.");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDepartments();
+  }, []);
+
+  const fetchDepartments = async () => {
+    try {
+      setLoadingDepartments(true);
+
+      const token = getToken();
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/interviews/departments`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch departments");
+      }
+
+      const result = await response.json();
+
+      setDepartments(result.data || []);
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to load departments");
+    } finally {
+      setLoadingDepartments(false);
     }
   };
 
@@ -329,13 +405,31 @@ export default function ScheduleInterview() {
                       />
                     </div>
                     <div>
-                      <label className="text-xs font-medium text-slate-600 mb-1 block">Department</label>
-                      <input
-                        type="text"
+                      <label className="mb-1 block text-xs font-medium text-slate-600">
+                        Department
+                      </label>
+
+                      <select
                         value={formData.department}
-                        onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                        className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:border-violet-500 text-sm"
-                      />
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            department: e.target.value,
+                          })
+                        }
+                        disabled={loadingDepartments}
+                        className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-900 focus:border-violet-500 focus:outline-none"
+                      >
+                        <option value="">
+                          {loadingDepartments ? "Loading..." : "Select Department"}
+                        </option>
+
+                        {departments.map((department) => (
+                          <option key={department.id} value={department.id}>
+                            {department.name}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                     <div>
                       <label className="text-xs font-medium text-slate-600 mb-1 block">Experience Level</label>

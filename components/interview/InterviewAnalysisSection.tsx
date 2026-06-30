@@ -96,7 +96,7 @@ export default function InterviewAnalysisSection({
           <video
             controls
             className="w-full rounded-xl border border-gray-200"
-            src={`${process.env.NEXT_PUBLIC_API_URL}${analysis.recordingUrl}`}
+            src={`${process.env.NEXT_PUBLIC_BASE_URL}${analysis.recordingUrl}`}
           />
         </div>
       )}

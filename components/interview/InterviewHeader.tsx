@@ -1,6 +1,9 @@
 "use client";
 
 import { Clock3, Copy, Mail, FileText } from "lucide-react";
+import { useRouter, useParams } from "next/navigation";
+import { toast } from "sonner";
+
 
 interface InterviewHeaderProps {
   candidateName: string;
@@ -19,6 +22,22 @@ export default function InterviewHeader({
     COMPLETED: "bg-green-100 text-green-700",
     SCHEDULED: "bg-amber-100 text-amber-700",
     FAILED: "bg-red-100 text-red-700",
+  };
+
+  const router = useRouter();
+  const params = useParams();
+
+
+  const handleCopyLink = async () => {
+    const reportUrl = `${window.location.origin}/reports/${interviewId}`;
+
+    try {
+      await navigator.clipboard.writeText(reportUrl);
+      toast.success("Report link copied successfully");
+    } catch (error) {
+      console.error("Failed to copy link:", error);
+      toast.error("Failed to copy report link");
+    }
   };
 
   return (
@@ -72,17 +91,25 @@ export default function InterviewHeader({
 
         {/* Right */}
         <div className="flex flex-wrap gap-3">
-          <button className="px-5 py-2 rounded-xl border hover:bg-gray-50 transition flex items-center gap-2">
-            <Copy size={16} />
-            Copy Link
-          </button>
+        <button
+          onClick={handleCopyLink}
+          className="flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-50 hover:text-slate-900"
+        >
+          <Copy size={16} className="text-slate-800" />
+          Copy Link
+        </button>
 
-          <button className="px-5 py-2 rounded-xl border hover:bg-gray-50 transition flex items-center gap-2">
-            <Mail size={16} />
-            Resend Invite
-          </button>
+      <button
+        className="flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-50 hover:text-slate-900"
+      >
+        <Mail size={16} className="text-slate-800" />
+        Resend Invite
+      </button>
 
-          <button className="px-5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white transition">
+          <button
+            onClick={() => router.push(`/reports/${params.id}`)}
+            className="px-5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white transition"
+          >
             View Report
           </button>
         </div>
