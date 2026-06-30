@@ -7,8 +7,10 @@ export interface Question {
   duration: number;
   weight: number;
   difficulty: string;
+  tag?: string;            // e.g. "JavaScript", "React", "System Design" — shown under question text
   active: boolean;
   createdAt: string;
+  createdByName?: string;  // e.g. "Mansi Kakade" — shown under created date
 }
 
 export interface QuestionStats {
@@ -38,8 +40,6 @@ export interface CreateQuestionPayload {
   expectedAnswer: string;
   duration: number;
   weight: number;
-  difficulty:
-    | "EASY"
-    | "MEDIUM"
-    | "HARD";
+  difficulty: "EASY" | "MEDIUM" | "HARD";
+  tag?: string;
 }
