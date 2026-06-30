@@ -1,23 +1,27 @@
 "use client";
 
-import { Search, FilterX } from "lucide-react";
+import { Search, FilterX, ChevronDown } from "lucide-react";
 
 interface Props {
   search: string;
+  status: string; // "" | "Active" | "Inactive"
   onSearchChange: (value: string) => void;
+  onStatusChange: (value: string) => void;
   onClear?: () => void;
 }
 
 export default function TemplateFilters({
   search,
+  status,
   onSearchChange,
+  onStatusChange,
   onClear,
 }: Props) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-6">
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-6">
+    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {/* Search */}
-        <div className="lg:col-span-2">
+        <div className="sm:col-span-2">
           <label className="mb-2 block text-sm font-medium text-slate-700">
             Search Template
           </label>
@@ -30,7 +34,7 @@ export default function TemplateFilters({
               value={search}
               onChange={(e) => onSearchChange(e.target.value)}
               placeholder="Search by template name..."
-              className="h-11 w-full rounded-lg border border-slate-200 bg-white pl-10 pr-4 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              className="h-11 w-full rounded-lg border border-slate-200 bg-white pl-10 pr-4 text-sm outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
             />
           </div>
         </div>
@@ -41,54 +45,18 @@ export default function TemplateFilters({
             Status
           </label>
 
-          <select
-            disabled
-            className="h-11 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm text-slate-400"
-          >
-            <option>All Status</option>
-          </select>
-        </div>
-
-        {/* Role */}
-        <div>
-          <label className="mb-2 block text-sm font-medium text-slate-700">
-            Role / Category
-          </label>
-
-          <select
-            disabled
-            className="h-11 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm text-slate-400"
-          >
-            <option>All Roles</option>
-          </select>
-        </div>
-
-        {/* Experience */}
-        <div>
-          <label className="mb-2 block text-sm font-medium text-slate-700">
-            Experience Level
-          </label>
-
-          <select
-            disabled
-            className="h-11 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm text-slate-400"
-          >
-            <option>All Levels</option>
-          </select>
-        </div>
-
-        {/* Created By */}
-        <div>
-          <label className="mb-2 block text-sm font-medium text-slate-700">
-            Created By
-          </label>
-
-          <select
-            disabled
-            className="h-11 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm text-slate-400"
-          >
-            <option>All Users</option>
-          </select>
+          <div className="relative">
+            <select
+              value={status}
+              onChange={(e) => onStatusChange(e.target.value)}
+              className="h-11 w-full appearance-none rounded-lg border border-slate-200 bg-white pl-3 pr-9 text-sm text-slate-700 outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
+            >
+              <option value="">All Status</option>
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          </div>
         </div>
       </div>
 

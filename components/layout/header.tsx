@@ -38,37 +38,6 @@ export default function Header() {
       {/* Right */}
       <div className="flex items-center gap-6">
 
-        {/* Search */}
-        <div className="relative hidden md:block">
-          <Search
-            size={18}
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-          />
-
-          <input
-            placeholder="Search anything..."
-            className="
-              w-[380px]
-              rounded-xl
-              border
-              border-white/10
-              bg-[#111827]
-              text-white
-              placeholder:text-gray-400
-              py-3
-              pl-11
-              pr-16
-              outline-none
-              focus:ring-2
-              focus:ring-violet-500
-            "
-          />
-
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md border border-white/10 bg-[#1F2937] px-2 py-1 text-xs text-gray-400">
-            ⌘ K
-          </div>
-        </div>
-
         {/* Notification */}
         <button className="relative h-11 w-11 rounded-full hover:bg-white/10 flex items-center justify-center">
           <Bell size={21} className="text-white" />

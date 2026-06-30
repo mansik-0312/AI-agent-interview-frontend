@@ -43,3 +43,12 @@ export interface CreateQuestionPayload {
   difficulty: "EASY" | "MEDIUM" | "HARD";
   tag?: string;
 }
+
+export interface UpdateQuestionPayload {
+  questionText?: string;
+  expectedAnswer?: string;
+  duration?: number;
+  weight?: number;
+  difficulty?: "EASY" | "MEDIUM" | "HARD";
+  active?: boolean;
+}

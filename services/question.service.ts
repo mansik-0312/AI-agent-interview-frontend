@@ -103,3 +103,54 @@ export async function createQuestion(
 
   return result.data;
 }
+
+import { UpdateQuestionPayload } from "@/types/question";
+
+export async function updateQuestion(
+  questionId: string,
+  payload: UpdateQuestionPayload
+) {
+  const token = getToken();
+
+  const response = await fetch(
+    `${API_URL}/questions/${questionId}`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+
+  const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      result.message ?? "Failed to update question"
+    );
+  }
+
+  return result.data;
+}
+
+export async function deleteQuestion(
+  questionId: string
+): Promise<void> {
+  const token = getToken();
+
+  const response = await fetch(
+    `${API_URL}/questions/${questionId}`,
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to delete question");
+  }
+}

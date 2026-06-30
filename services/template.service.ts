@@ -1,34 +1,52 @@
 import { getToken } from "@/lib/auth";
-import { TemplateListResponse,
-    CreateTemplatePayload,
-    CreateTemplateResponse,
- } from "@/types/template";
+import {
+  TemplateListResponse,
+  CreateTemplatePayload,
+  CreateTemplateResponse,
+} from "@/types/template";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-export async function getTemplates(
-    page = 1,
-    pageSize = 10
-): Promise<TemplateListResponse> {
+interface GetTemplatesParams {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  status?: string; // "" | "Active" | "Inactive"
+}
 
-    const token = getToken();
+export async function getTemplates({
+  page = 1,
+  pageSize = 10,
+  search,
+  status,
+}: GetTemplatesParams = {}): Promise<TemplateListResponse> {
+  const token = getToken();
 
-    const response = await fetch(
-        `${API_URL}/templates?page=${page}&page_size=${pageSize}`,
-        {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        }
-    );
+  const query = new URLSearchParams();
+  query.append("page", String(page));
+  query.append("page_size", String(pageSize));
 
-    if (!response.ok) {
-        throw new Error("Failed to fetch templates");
-    }
+  if (search) {
+    query.append("search", search);
+  }
 
-    const result = await response.json();
+  // Backend expects ?active=true|false (confirmed working).
+  if (status === "Active") query.append("active", "true");
+  if (status === "Inactive") query.append("active", "false");
 
-    return result.data;
+  const response = await fetch(`${API_URL}/templates?${query.toString()}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch templates");
+  }
+
+  const result = await response.json();
+
+  return result.data;
 }
 
 export async function createTemplate(
@@ -36,17 +54,14 @@ export async function createTemplate(
 ): Promise<CreateTemplateResponse> {
   const token = getToken();
 
-  const response = await fetch(
-    `${API_URL}/templates`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(payload),
-    }
-  );
+  const response = await fetch(`${API_URL}/templates`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
 
   if (!response.ok) {
     throw new Error("Failed to create template");

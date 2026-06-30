@@ -73,9 +73,6 @@ export default function UpcomingInterviews({ interviews }: Props) {
                 Interview Date &amp; Time
               </th>
               <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-400">
-                Interviewers
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-400">
                 Type
               </th>
               <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-400">
@@ -88,7 +85,7 @@ export default function UpcomingInterviews({ interviews }: Props) {
             {interviews.length === 0 ? (
               <tr>
                 <td
-                  colSpan={6}
+                  colSpan={5}
                   className="py-12 text-center text-sm font-medium text-slate-500"
                 >
                   No upcoming interviews found.
@@ -118,26 +115,6 @@ export default function UpcomingInterviews({ interviews }: Props) {
 
                   {/* Date & Time */}
                   <td className="px-4 py-4 text-slate-600">{formatDateTime(item.scheduledAt)}</td>
-
-                  {/* Interviewers */}
-                  <td className="px-4 py-4">
-                    <div className="flex items-center">
-                      {item.interviewers.slice(0, 3).map((name, idx) => (
-                        <span
-                          key={idx}
-                          title={name}
-                          className={`-ml-1 first:ml-0 inline-flex h-7 w-7 items-center justify-center rounded-full border-2 border-white text-[10px] font-semibold ${getAvatarColor(name)}`}
-                        >
-                          {getInitials(name)}
-                        </span>
-                      ))}
-                      {item.interviewers.length > 3 && (
-                        <span className="-ml-1 inline-flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-slate-100 text-[10px] font-semibold text-slate-500">
-                          +{item.interviewers.length - 3}
-                        </span>
-                      )}
-                    </div>
-                  </td>
 
                   {/* Type */}
                   <td className="px-4 py-4 text-slate-600">{item.type}</td>

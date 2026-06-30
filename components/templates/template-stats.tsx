@@ -1,6 +1,6 @@
 "use client";
 
-import { Template } from "@/types/template";
+import { Template, Pagination } from "@/types/template";
 import {
   Layers3,
   CheckCircle2,
@@ -10,24 +10,22 @@ import {
 
 interface Props {
   templates: Template[];
+  pagination?: Pagination;
 }
 
-export default function TemplateStats({
-  templates,
-}: Props) {
-  const totalTemplates = templates.length;
+export default function TemplateStats({ templates, pagination }: Props) {
+  // Prefer server-reported total so stats stay correct even when the
+  // table is filtered or paginated to a subset of records.
+  const totalTemplates = pagination?.total_records ?? templates.length;
 
-  const activeTemplates = templates.filter(
-    (template) => template.active
-  ).length;
+  const activeTemplates = templates.filter((template) => template.active).length;
 
   const totalQuestions = templates.reduce(
     (sum, template) => sum + template.totalQuestions,
     0
   );
 
-  const mostUsedTemplate =
-    templates.length > 0 ? templates[0].name : "--";
+  const mostUsedTemplate = templates.length > 0 ? templates[0].name : "--";
 
   const cards = [
     {
@@ -76,17 +74,13 @@ export default function TemplateStats({
           >
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm font-medium text-slate-500">
-                  {card.title}
-                </p>
+                <p className="text-sm font-medium text-slate-500">{card.title}</p>
 
                 <h3 className="mt-2 text-3xl font-bold text-slate-900 break-words">
                   {card.value}
                 </h3>
 
-                <p className="mt-2 text-sm text-slate-500">
-                  {card.subtitle}
-                </p>
+                <p className="mt-2 text-sm text-slate-500">{card.subtitle}</p>
               </div>
 
               <div
