@@ -410,11 +410,11 @@ export default function ScheduleInterview() {
                       </label>
 
                       <select
-                        value={formData.department}
+                        value={formData.departmentId}
                         onChange={(e) =>
                           setFormData({
                             ...formData,
-                            department: e.target.value,
+                            departmentId: e.target.value,
                           })
                         }
                         disabled={loadingDepartments}
