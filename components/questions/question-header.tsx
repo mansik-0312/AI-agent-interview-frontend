@@ -5,35 +5,19 @@ import { Plus } from "lucide-react";
 
 export default function QuestionHeader() {
   return (
-    <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+    <div className="flex items-start justify-between">
       <div>
-        <h1 className="text-4xl font-bold text-[#0B1020]">
-          Question List
-        </h1>
-
-        <p className="mt-2 text-slate-500">
+        <h1 className="text-2xl font-bold text-slate-800">Question List</h1>
+        <p className="mt-1 text-sm text-slate-500">
           Manage your question bank used in AI interviews.
         </p>
       </div>
 
       <Link
         href="/questions/create"
-        className="
-          inline-flex
-          items-center
-          gap-2
-          rounded-2xl
-          bg-violet-600
-          px-6
-          py-4
-          font-medium
-          text-white
-          shadow-lg
-          transition
-          hover:bg-violet-700
-        "
+        className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 active:bg-blue-800 transition-colors"
       >
-        <Plus size={18} />
+        <Plus className="h-4 w-4" />
         Create Question
       </Link>
     </div>
