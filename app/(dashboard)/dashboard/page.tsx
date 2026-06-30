@@ -5,9 +5,11 @@ import StatsCards from "@/components/dashboard/stats-card";
 import UpcomingInterviews from "@/components/dashboard/upcoming-interviews";
 import RecentInterviews from "@/components/dashboard/recent-interviews";
 import { Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function DashboardPage() {
   const { dashboard, loading, error } = useDashboard();
+  const router = useRouter();
 
   if (loading) {
     return (
@@ -40,7 +42,10 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        <button className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 active:bg-blue-800 transition-colors">
+        <button
+          onClick={() => router.push("/interviews/create")}
+          className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 active:bg-blue-800 transition-colors"
+        >
           <Plus className="h-4 w-4" />
           Schedule Interview
         </button>
