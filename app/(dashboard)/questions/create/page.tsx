@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 import { useCreateQuestion } from "@/hooks/useCreateQuestion";
 import { useUpdateQuestion } from "@/hooks/useUpdateQuestion";
+import { useActiveTemplates } from "@/hooks/useActiveTemplates";
 
 export default function CreateQuestionPage() {
   const router = useRouter();
@@ -23,8 +24,11 @@ export default function CreateQuestionPage() {
 
   const [loading, setLoading] = useState(false);
 
-  const { createQuestion } = useCreateQuestion();
-  const { updateQuestion } = useUpdateQuestion();
+  const { submit: createQuestion } = useCreateQuestion();
+  const { submit: updateQuestion } = useUpdateQuestion();
+
+  // Fetch active templates to populate the dropdown
+  const { templates, loading: templatesLoading } = useActiveTemplates();
 
   useEffect(() => {
     if (!questionId) return;
@@ -59,16 +63,6 @@ export default function CreateQuestionPage() {
   const handleSubmit = async () => {
     try {
       setLoading(true);
-
-      const payload = {
-        questionText,
-        expectedAnswer,
-        difficulty: difficulty as "EASY" | "MEDIUM" | "HARD",
-        duration,
-        weight,
-        templateId,
-      };
-
       if (isEdit) {
         await updateQuestion(questionId!, {
           questionText,
@@ -103,6 +97,10 @@ export default function CreateQuestionPage() {
 
   const labelClass = "block text-sm font-medium text-slate-700";
 
+  // Resolve selected template name for Live Preview
+  const selectedTemplateName =
+    templates.find((t) => t.id === templateId)?.name ?? "—";
+
   return (
     <div className="space-y-6 p-6">
       {/* Breadcrumb */}
@@ -135,33 +133,23 @@ export default function CreateQuestionPage() {
           <div className="mt-5 space-y-5">
 
             <div>
-              <label className={labelClass}>
-                Question Text
-              </label>
-
+              <label className={labelClass}>Question Text</label>
               <textarea
                 rows={8}
                 placeholder="Enter the interview question..."
                 value={questionText}
-                onChange={(e) =>
-                  setQuestionText(e.target.value)
-                }
+                onChange={(e) => setQuestionText(e.target.value)}
                 className={textareaClass}
               />
             </div>
 
             <div>
-              <label className={labelClass}>
-                Expected Answer
-              </label>
-
+              <label className={labelClass}>Expected Answer</label>
               <textarea
                 rows={8}
                 placeholder="Describe what a strong answer looks like..."
                 value={expectedAnswer}
-                onChange={(e) =>
-                  setExpectedAnswer(e.target.value)
-                }
+                onChange={(e) => setExpectedAnswer(e.target.value)}
                 className={textareaClass}
               />
             </div>
@@ -179,18 +167,12 @@ export default function CreateQuestionPage() {
           <div className="mt-5 space-y-5">
 
             <div>
-
-              <label className={labelClass}>
-                Difficulty
-              </label>
-
+              <label className={labelClass}>Difficulty</label>
               <div className="relative">
 
                 <select
                   value={difficulty}
-                  onChange={(e) =>
-                    setDifficulty(e.target.value)
-                  }
+                  onChange={(e) => setDifficulty(e.target.value)}
                   className={`${inputClass} appearance-none pr-9`}
                 >
                   <option value="EASY">Easy</option>
@@ -204,75 +186,55 @@ export default function CreateQuestionPage() {
 
             </div>
 
+            {/* Duration */}
             <div>
-
-              <label className={labelClass}>
-                Duration (seconds)
-              </label>
-
+              <label className={labelClass}>Duration (seconds)</label>
               <input
                 type="number"
                 min={0}
                 value={duration}
-                onChange={(e) =>
-                  setDuration(Number(e.target.value))
-                }
+                onChange={(e) => setDuration(Number(e.target.value))}
                 className={inputClass}
               />
-
               <p className="mt-1.5 text-xs text-slate-400">
-                {duration > 0
-                  ? `${(duration / 60).toFixed(1)} min`
-                  : "—"}
+                {duration > 0 ? `${(duration / 60).toFixed(1)} min` : "—"}
               </p>
 
             </div>
 
             <div>
-
-              <label className={labelClass}>
-                Weight
-              </label>
-
+              <label className={labelClass}>Weight</label>
               <input
                 type="number"
                 min={1}
                 max={5}
                 value={weight}
-                onChange={(e) =>
-                  setWeight(Number(e.target.value))
-                }
+                onChange={(e) => setWeight(Number(e.target.value))}
                 className={inputClass}
               />
             </div>
 
+            {/* Template — now populated from the API */}
             <div>
-
-              <label className={labelClass}>
-                Template
-              </label>
-
+              <label className={labelClass}>Template</label>
               <div className="relative">
 
                 <select
                   value={templateId}
-                  onChange={(e) =>
-                    setTemplateId(e.target.value)
-                  }
-                  className={`${inputClass} appearance-none pr-9 ${
-                    templateId === ""
-                      ? "text-slate-400"
-                      : "text-slate-800"
+                  onChange={(e) => setTemplateId(e.target.value)}
+                  disabled={templatesLoading}
+                  className={`${inputClass} appearance-none pr-9 disabled:bg-slate-50 disabled:text-slate-400 ${
+                    templateId === "" ? "text-slate-400" : "text-slate-800"
                   }`}
                 >
                   <option value="">
-                    Select Template
+                    {templatesLoading ? "Loading templates..." : "Select Template"}
                   </option>
-
-                  {/* TODO:
-                      Populate templates here
-                  */}
-
+                  {templates.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.name}
+                    </option>
+                  ))}
                 </select>
 
                 <ChevronRight className="pointer-events-none absolute right-3.5 top-1/2 mt-1 h-4 w-4 -translate-y-1/2 rotate-90 text-slate-400" />
@@ -286,19 +248,12 @@ export default function CreateQuestionPage() {
         {/* Preview */}
 
         <div className="xl:col-span-4 rounded-2xl border border-slate-200 bg-white p-6">
-
-          <h2 className="text-base font-bold text-blue-600">
-            Live Preview
-          </h2>
+          <h2 className="text-base font-bold text-blue-600">Live Preview</h2>
 
           <div className="mt-6 space-y-5">
 
             <div>
-
-              <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
-                Question
-              </p>
-
+              <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Question</p>
               <p className="mt-2 text-base font-semibold leading-relaxed text-slate-800">
                 {questionText || (
                   <span className="font-normal text-slate-400">
@@ -309,11 +264,7 @@ export default function CreateQuestionPage() {
             </div>
 
             <div>
-
-              <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
-                Expected Answer
-              </p>
-
+              <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Expected Answer</p>
               <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-slate-600">
                 {expectedAnswer || (
                   <span className="text-slate-400">
@@ -326,43 +277,28 @@ export default function CreateQuestionPage() {
             <div className="grid grid-cols-2 gap-3">
 
               <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
-                <p className="text-xs font-medium text-slate-500">
-                  Difficulty
-                </p>
-
+                <p className="text-xs font-medium text-slate-500">Difficulty</p>
                 <p className="mt-1.5 text-sm font-semibold text-slate-800 capitalize">
-                  {difficulty.charAt(0) +
-                    difficulty.slice(1).toLowerCase()}
+                  {difficulty.charAt(0) + difficulty.slice(1).toLowerCase()}
                 </p>
               </div>
 
               <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
-                <p className="text-xs font-medium text-slate-500">
-                  Duration
-                </p>
-
+                <p className="text-xs font-medium text-slate-500">Duration</p>
                 <p className="mt-1.5 text-sm font-semibold text-slate-800">
                   {(duration / 60).toFixed(1)} min
                 </p>
               </div>
 
               <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
-                <p className="text-xs font-medium text-slate-500">
-                  Weight
-                </p>
-
-                <p className="mt-1.5 text-sm font-semibold text-slate-800">
-                  {weight}
-                </p>
+                <p className="text-xs font-medium text-slate-500">Weight</p>
+                <p className="mt-1.5 text-sm font-semibold text-slate-800">{weight}</p>
               </div>
 
               <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
-                <p className="text-xs font-medium text-slate-500">
-                  Template
-                </p>
-
-                <p className="mt-1.5 text-sm font-semibold text-slate-800">
-                  {templateId || "—"}
+                <p className="text-xs font-medium text-slate-500">Template</p>
+                <p className="mt-1.5 text-sm font-semibold text-slate-800 truncate" title={selectedTemplateName}>
+                  {selectedTemplateName}
                 </p>
               </div>
 
@@ -385,7 +321,7 @@ export default function CreateQuestionPage() {
 
         <button
           onClick={handleSubmit}
-          disabled={loading}
+          disabled={loading || (!isEdit && !templateId)}
           className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 active:bg-blue-800 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
         >
           {loading

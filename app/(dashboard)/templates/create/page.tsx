@@ -14,6 +14,7 @@ export default function CreateTemplatePage() {
 
   const [name, setName] = useState("");2
   const [description, setDescription] = useState("");
+  const [totalQuestions, setTotalQuestions] = useState(1);
 
   const {
     createTemplate,
@@ -25,7 +26,7 @@ export default function CreateTemplatePage() {
     const success = await createTemplate({
       name: name.trim(),
       description: description.trim(),
-      totalQuestions: 0,
+      totalQuestions,
     });
 
     if (success) {
@@ -46,8 +47,10 @@ export default function CreateTemplatePage() {
       <BasicInformation
         name={name}
         description={description}
+        totalQuestions={totalQuestions}
         onNameChange={setName}
         onDescriptionChange={setDescription}
+        onTotalQuestionsChange={setTotalQuestions}
       />
 
       <CreateTemplateFooter
