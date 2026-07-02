@@ -19,7 +19,7 @@ export default function CreateTemplateFooter({
       <div className="flex items-center justify-end gap-3">
         <Link
           href="/templates"
-          className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+          className="rounded-xl border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-800 transition hover:bg-slate-50"
         >
           Cancel
         </Link>
