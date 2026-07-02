@@ -135,10 +135,6 @@ const QUESTIONS_PER_PAGE = 6;
 export default function ReportDetailPage() {
   const params = useParams();
   const router = useRouter();
-  // Comes from route /reports/[id]. The reports list page must have done
-  // router.push(`/reports/${interview.interviewId}`) using the real
-  // interviewId from GET /api/interviews?status=completed — that exact
-  // string is what gets fetched below.
   const id = params?.id as string;
 
   const [activeTab, setActiveTab] = useState("Overview");

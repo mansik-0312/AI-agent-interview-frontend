@@ -6,10 +6,27 @@ import UpcomingInterviews from "@/components/dashboard/upcoming-interviews";
 import RecentInterviews from "@/components/dashboard/recent-interviews";
 import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { getUser } from "@/lib/auth";
+
+interface User {
+  fName: string;
+  lName: string;
+  designation: string;
+  profileImg: string;
+}
 
 export default function DashboardPage() {
   const { dashboard, loading, error } = useDashboard();
   const router = useRouter();
+
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const userData = getUser();
+    setUser(userData);
+  }, []);
+
 
   if (loading) {
     return (
@@ -35,7 +52,7 @@ export default function DashboardPage() {
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">
-            Welcome back, Mansi! 👋
+            Welcome back, {user?.fName || "User"}!
           </h1>
           <p className="mt-1 text-sm text-slate-500">
             Here's what's happening with your interviews today.
