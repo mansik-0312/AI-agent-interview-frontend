@@ -193,10 +193,10 @@ export default function Sidebar() {
           </div>
         </div>
 
-        <button className="w-full mt-4 flex items-center justify-center gap-2 text-gray-400 hover:text-white transition">
+        {/* <button className="w-full mt-4 flex items-center justify-center gap-2 text-gray-400 hover:text-white transition">
           <ChevronLeft size={18} />
           Collapse
-        </button>
+        </button> */}
       </div>
     </aside>
   );

@@ -135,10 +135,6 @@ const QUESTIONS_PER_PAGE = 6;
 export default function ReportDetailPage() {
   const params = useParams();
   const router = useRouter();
-  // Comes from route /reports/[id]. The reports list page must have done
-  // router.push(`/reports/${interview.interviewId}`) using the real
-  // interviewId from GET /api/interviews?status=completed — that exact
-  // string is what gets fetched below.
   const id = params?.id as string;
 
   const [activeTab, setActiveTab] = useState("Overview");
@@ -297,7 +293,7 @@ export default function ReportDetailPage() {
         </button>
         <span className="mx-2">›</span>
         <span>
-          {candidateName} - {STATIC_FALLBACK.jobRole}
+          {report?.candidateDetails?.candidateName || "-"} - {STATIC_FALLBACK.jobRole}
         </span>
       </div>
 
@@ -305,7 +301,7 @@ export default function ReportDetailPage() {
       <div className="flex items-start justify-between mb-6">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-semibold text-slate-900">{candidateName}</h1>
+            <h1 className="text-2xl font-semibold text-slate-900">{report?.candidateDetails?.candidateName || "-"}</h1>
             <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 text-xs font-medium">
               {STATIC_FALLBACK.status}
             </span>
@@ -412,29 +408,64 @@ export default function ReportDetailPage() {
           {/* Candidate Information - static, not returned by API */}
           <div className="col-span-4 bg-white rounded-xl border border-slate-100 shadow-sm p-4">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold text-slate-900">Candidate Information</h3>
+              <h3 className="text-sm font-semibold text-slate-900">
+                Candidate Information
+              </h3>
+
               <button className="text-slate-400 hover:text-violet-600">
                 <Pencil size={14} />
               </button>
             </div>
-            <div className="grid grid-cols-2 gap-3 text-xs">
-              <div className="space-y-2">
-                <div className="text-slate-600">{STATIC_FALLBACK.candidateInfo.email}</div>
-                <div className="text-slate-600">{STATIC_FALLBACK.candidateInfo.phone}</div>
-                <div className="text-slate-600">{STATIC_FALLBACK.candidateInfo.location}</div>
+
+            <div className="grid grid-cols-2 gap-4 text-xs">
+              {/* Left */}
+              <div className="space-y-3">
+                <div>
+                  <p className="text-slate-400">Email</p>
+                  <p className="text-slate-900 font-medium break-all">
+                    {report?.candidateDetails?.email || "-"}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-slate-400">Phone</p>
+                  <p className="text-slate-900 font-medium">
+                    {report?.candidateDetails?.phone || "-"}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-slate-400">LinkedIn</p>
+
+                  {report?.candidateDetails?.linkedinUrl ? (
+                    <a
+                      href={report.candidateDetails.linkedinUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-violet-600 hover:underline break-all"
+                    >
+                      {report.candidateDetails.linkedinUrl}
+                    </a>
+                  ) : (
+                    <p className="text-slate-900 font-medium">-</p>
+                  )}
+                </div>
               </div>
-              <div className="space-y-2 text-right">
+
+              {/* Right */}
+              <div className="space-y-3">
                 <div>
                   <p className="text-slate-400">Experience</p>
-                  <p className="text-slate-900 font-medium">{STATIC_FALLBACK.candidateInfo.experience}</p>
+                  <p className="text-slate-900 font-medium">
+                    {report?.candidateDetails?.experience || "-"}
+                  </p>
                 </div>
+
                 <div>
                   <p className="text-slate-400">Current Role</p>
-                  <p className="text-slate-900 font-medium">{STATIC_FALLBACK.candidateInfo.currentRole}</p>
-                </div>
-                <div>
-                  <p className="text-slate-400">Notice Period</p>
-                  <p className="text-slate-900 font-medium">{STATIC_FALLBACK.candidateInfo.noticePeriod}</p>
+                  <p className="text-slate-900 font-medium">
+                    {report?.candidateDetails?.jobRole || "-"}
+                  </p>
                 </div>
               </div>
             </div>
@@ -457,7 +488,7 @@ export default function ReportDetailPage() {
                 <p className="text-slate-400 flex items-center gap-1 mb-0.5">
                   <Layers3 size={12} /> Candidate ID
                 </p>
-                <p className="text-slate-900 font-medium">{report.candidate_id || "Not assigned"}</p>
+                <p className="text-slate-900 font-medium">{report?.candidateDetails?.candidateId || "Not assigned"}</p>
               </div>
               <div>
                 <p className="text-slate-400 flex items-center gap-1 mb-0.5">
