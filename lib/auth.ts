@@ -1,4 +1,4 @@
-const LOGIN_URL = "http://127.0.0.1:8080/userService/user/login";
+const LOGIN_URL = "https://hrms-central-service.prometteur.in/userService/user/login";
 
 const TOKEN_KEY = "authToken";
 const USER_KEY = "user";

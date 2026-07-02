@@ -30,27 +30,27 @@ export default function Header() {
 
       {/* Left */}
       <div className="flex items-center gap-5">
-        <button className="h-10 w-10 rounded-lg hover:bg-white/10 flex items-center justify-center transition">
+        {/* <button className="h-10 w-10 rounded-lg hover:bg-white/10 flex items-center justify-center transition">
           <Menu size={22} className="text-white" />
-        </button>
+        </button> */}
       </div>
 
       {/* Right */}
       <div className="flex items-center gap-6">
 
         {/* Notification */}
-        <button className="relative h-11 w-11 rounded-full hover:bg-white/10 flex items-center justify-center">
+        {/* <button className="relative h-11 w-11 rounded-full hover:bg-white/10 flex items-center justify-center">
           <Bell size={21} className="text-white" />
 
           <span className="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-violet-600 text-[10px] font-bold text-white">
             3
           </span>
-        </button>
+        </button> */}
 
         {/* Theme */}
-        <button className="h-11 w-11 rounded-full hover:bg-white/10 flex items-center justify-center">
+        {/* <button className="h-11 w-11 rounded-full hover:bg-white/10 flex items-center justify-center">
           <Moon size={20} className="text-white" />
-        </button>
+        </button> */}
 
         {/* Divider */}
         <div className="h-10 w-px bg-white/10" />
